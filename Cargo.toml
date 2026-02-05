@@ -1,0 +1,17 @@
+[package]
+name = "pay-respects-serverless"
+version = "0.1.0"
+edition = "2021"
+authors = ["iff <iff@ik.me>"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+worker = { version = "0.7" }
+worker-macros = { version = "0.7" }
+reqwest = { version = "0.13", features = ["stream", "json"] }
+serde_json = "1.0.149"
+futures-util = "0.3.31"
+serde = "1.0.228"
+rand = "0.9.2"
