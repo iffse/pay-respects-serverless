@@ -72,16 +72,20 @@ async fn fetch(
 		.header("Charset", "utf-8")
 		.json(&json)
 		.send()
-		.await
-		.map_err(|e| {
-			worker::Error::from(e.to_string())
-		});
+		.await;
 
 	if res.is_err() {
 		return Response::error(format!("Failed to send request to API: {}", res.err().unwrap()), 500);
 	}
 
-	let stream = res.unwrap()
+	let res = res.unwrap();
+	if !res.status().is_success() {
+		let status = res.status();
+		let message = res.text().await.unwrap_or_else(|_| "No error message provided".to_string());
+		return Response::error(format!("API request failed with status {}: {}", status, message), 500);
+	}
+
+	let stream = res
 		.bytes_stream()
 		.map_err(|e| {
 			worker::Error::from(e.to_string())
