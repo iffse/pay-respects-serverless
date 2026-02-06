@@ -35,24 +35,25 @@ async fn fetch(
 	let verify_key = format!("Bearer {}", _env.var("VERIFY_KEY")?.to_string());
 
 	if auth.is_none() || auth.unwrap() != verify_key {
-		return Response::error("Unauthorized", 401);
+		return Response::error("Unauthorized: This is pay-respects-serverless", 401);
 	}
 	let body = _req.text().await?;
-	if body.len() > 1000 {
-		return Response::error("Payload Too Large", 413);
+	if body.chars().count() > 1000 {
+		return Response::error("Payload Too Large: Use your own API for large requests", 413);
 	}
 	let mut json = serde_json::from_str::<Messages>(&body).map_err(|e| {
 		worker::Error::from(format!("Invalid JSON: {}", e))
 	})?;
 	let avaiable_models = [
-		"deepseek-r1-distill-llama-70b",
-		"deepseek-r1-distill-qwen-32b",
-		"llama-3.2-90b-vision-preview",
-		"llama-3.3-70b-specdec",
-		"llama-3.3-70b-versatile",
-		"llama3-70b-8192",
-		"qwen-2.5-32b",
-		"qwen-qwq-32b",
+		"qwen/qwen3-32b",
+		"openai/gpt-oss-safeguard-20b",
+		"openai/gpt-oss-20b",
+		"openai/gpt-oss-120b",
+		"moonshotai/kimi-k2-instruct-0905",
+		"moonshotai/kimi-k2-instruct",
+		"meta-llama/llama-4-scout-17b-16e-instruct",
+		"meta-llama/llama-4-maverick-17b-128e-instruct",
+		"llama-3.3-70b-versatile"
 	];
 	json.model = avaiable_models
 		.choose(&mut rand::rng())
