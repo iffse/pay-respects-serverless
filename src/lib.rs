@@ -32,7 +32,6 @@ async fn fetch(
 	}
 
 	let auth = _req.headers().get("Authorization")?;
-	println!("Authorization header: {:?}", auth);
 	let verify_key = format!("Bearer {}", _env.var("VERIFY_KEY")?.to_string());
 
 	if auth.is_none() || auth.unwrap() != verify_key {
@@ -75,9 +74,13 @@ async fn fetch(
 		.await
 		.map_err(|e| {
 			worker::Error::from(e.to_string())
-		})?;
+		});
 
-	let stream = res
+	if res.is_err() {
+		return Response::error(format!("Failed to send request to API: {}", res.err().unwrap()), 500);
+	}
+
+	let stream = res.unwrap()
 		.bytes_stream()
 		.map_err(|e| {
 			worker::Error::from(e.to_string())
