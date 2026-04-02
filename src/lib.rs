@@ -49,7 +49,6 @@ async fn fetch(
 		"openai/gpt-oss-safeguard-20b",
 		"openai/gpt-oss-20b",
 		"openai/gpt-oss-120b",
-		"moonshotai/kimi-k2-instruct-0905",
 		"moonshotai/kimi-k2-instruct",
 		"meta-llama/llama-4-scout-17b-16e-instruct",
 		"llama-3.3-70b-versatile"
