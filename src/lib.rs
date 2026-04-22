@@ -1,3 +1,19 @@
+const AVAIABLE_MODELS: [&str; 7] = [
+	"qwen/qwen3-32b",
+	"openai/gpt-oss-safeguard-20b",
+	"openai/gpt-oss-20b",
+	"openai/gpt-oss-120b",
+	"moonshotai/kimi-k2-instruct",
+	"meta-llama/llama-4-scout-17b-16e-instruct",
+	"llama-3.3-70b-versatile",
+];
+
+const PROMPT_SLICES: [&str; 3] = [
+	"Guess its intention and provide possible shell commands to solve the issue.",
+	"Provide only commands in the <suggest> section. Do not include any additional text.",
+	"No text allowed outside the <note> and <suggest> sections.",
+];
+
 use rand::seq::IndexedRandom;
 use worker::*;
 use futures_util::stream::TryStreamExt;
@@ -38,22 +54,18 @@ async fn fetch(
 		return Response::error("Unauthorized: This is pay-respects-serverless", 401);
 	}
 	let body = _req.text().await?;
-	if body.chars().count() > 1000 {
+	if body.chars().count() > 2000 {
 		return Response::error("Payload Too Large: Use your own API for large requests", 413);
+	}
+	for slice in PROMPT_SLICES.iter() {
+		if !body.contains(slice) {
+			return Response::error(format!("Invalid prompt. This proxy should only be used by pay-respects."), 400);
+		}
 	}
 	let mut json = serde_json::from_str::<Messages>(&body).map_err(|e| {
 		worker::Error::from(format!("Invalid JSON: {}", e))
 	})?;
-	let avaiable_models = [
-		"qwen/qwen3-32b",
-		"openai/gpt-oss-safeguard-20b",
-		"openai/gpt-oss-20b",
-		"openai/gpt-oss-120b",
-		"moonshotai/kimi-k2-instruct",
-		"meta-llama/llama-4-scout-17b-16e-instruct",
-		"llama-3.3-70b-versatile"
-	];
-	json.model = avaiable_models
+	json.model = AVAIABLE_MODELS
 		.choose(&mut rand::rng())
 		.unwrap()
 		.to_string();
