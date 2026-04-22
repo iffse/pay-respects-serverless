@@ -1,9 +1,8 @@
-const AVAIABLE_MODELS: [&str; 7] = [
+const AVAIABLE_MODELS: [&str; 6] = [
 	"qwen/qwen3-32b",
 	"openai/gpt-oss-safeguard-20b",
 	"openai/gpt-oss-20b",
 	"openai/gpt-oss-120b",
-	"moonshotai/kimi-k2-instruct",
 	"meta-llama/llama-4-scout-17b-16e-instruct",
 	"llama-3.3-70b-versatile",
 ];
