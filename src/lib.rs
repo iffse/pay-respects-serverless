@@ -1,10 +1,11 @@
-const AVAIABLE_MODELS: [&str; 6] = [
-	"qwen/qwen3-32b",
+const AVAIABLE_MODELS: [&str; 7] = [
+	"qwen/qwen3.6-27b",
 	"openai/gpt-oss-safeguard-20b",
 	"openai/gpt-oss-20b",
 	"openai/gpt-oss-120b",
-	"meta-llama/llama-4-scout-17b-16e-instruct",
 	"llama-3.3-70b-versatile",
+	"meta-llama/llama-prompt-guard-2-22m",
+	"meta-llama/llama-prompt-guard-2-86m",
 ];
 
 const PROMPT_SLICES: [&str; 3] = [
@@ -13,11 +14,11 @@ const PROMPT_SLICES: [&str; 3] = [
 	"No text allowed outside the <note> and <suggest> sections.",
 ];
 
+use futures_util::stream::TryStreamExt;
 use rand::seq::IndexedRandom;
 use worker::*;
-use futures_util::stream::TryStreamExt;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 struct Input {
@@ -33,12 +34,7 @@ struct Messages {
 }
 
 #[event(fetch)]
-async fn fetch(
-	mut _req: Request,
-	_env: Env,
-	_ctx: Context,
-) -> Result<Response> {
-
+async fn fetch(mut _req: Request, _env: Env, _ctx: Context) -> Result<Response> {
 	if _req.method() == Method::Get {
 		return Response::ok("pay-respects-serverless is running!");
 	}
@@ -54,16 +50,21 @@ async fn fetch(
 	}
 	let body = _req.text().await?;
 	if body.chars().count() > 2000 {
-		return Response::error("Payload Too Large: Use your own API for large requests", 413);
+		return Response::error(
+			"Payload Too Large: Use your own API for large requests",
+			413,
+		);
 	}
 	for slice in PROMPT_SLICES.iter() {
 		if !body.contains(slice) {
-			return Response::error(format!("Invalid prompt. This proxy should only be used by pay-respects."), 400);
+			return Response::error(
+				format!("Invalid prompt. This proxy should only be used by pay-respects."),
+				400,
+			);
 		}
 	}
-	let mut json = serde_json::from_str::<Messages>(&body).map_err(|e| {
-		worker::Error::from(format!("Invalid JSON: {}", e))
-	})?;
+	let mut json = serde_json::from_str::<Messages>(&body)
+		.map_err(|e| worker::Error::from(format!("Invalid JSON: {}", e)))?;
 	json.model = AVAIABLE_MODELS
 		.choose(&mut rand::rng())
 		.unwrap()
@@ -84,20 +85,27 @@ async fn fetch(
 		.await;
 
 	if res.is_err() {
-		return Response::error(format!("Failed to send request to API: {}", res.err().unwrap()), 500);
+		return Response::error(
+			format!("Failed to send request to API: {}", res.err().unwrap()),
+			500,
+		);
 	}
 
 	let res = res.unwrap();
 	if !res.status().is_success() {
 		let status = res.status();
-		let message = res.text().await.unwrap_or_else(|_| "No error message provided".to_string());
-		return Response::error(format!("API request failed with status {}: {}", status, message), 500);
+		let message = res
+			.text()
+			.await
+			.unwrap_or_else(|_| "No error message provided".to_string());
+		return Response::error(
+			format!("API request failed with status {}: {}", status, message),
+			500,
+		);
 	}
 
 	let stream = res
 		.bytes_stream()
-		.map_err(|e| {
-			worker::Error::from(e.to_string())
-		});
+		.map_err(|e| worker::Error::from(e.to_string()));
 	Response::from_stream(stream)
 }
