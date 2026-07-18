@@ -1,11 +1,9 @@
-const AVAIABLE_MODELS: [&str; 7] = [
+const AVAIABLE_MODELS: [&str; 5] = [
 	"qwen/qwen3.6-27b",
 	"openai/gpt-oss-safeguard-20b",
 	"openai/gpt-oss-20b",
 	"openai/gpt-oss-120b",
 	"llama-3.3-70b-versatile",
-	"meta-llama/llama-prompt-guard-2-22m",
-	"meta-llama/llama-prompt-guard-2-86m",
 ];
 
 const PROMPT_SLICES: [&str; 3] = [
