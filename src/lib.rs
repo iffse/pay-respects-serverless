@@ -1,9 +1,8 @@
-const AVAIABLE_MODELS: [&str; 5] = [
-	"qwen/qwen3.6-27b",
+const AVAIABLE_MODELS: [&str; 4] = [
+	"qwen/qwen3.8-27b",
 	"openai/gpt-oss-safeguard-20b",
 	"openai/gpt-oss-20b",
 	"openai/gpt-oss-120b",
-	"llama-3.3-70b-versatile",
 ];
 
 const PROMPT_SLICES: [&str; 3] = [
